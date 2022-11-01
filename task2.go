@@ -15,6 +15,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v1/hello", HelloHandler)
 	mux.HandleFunc("/v1/encoding", AddEncoderToContext(EncodingRequestHandler))
+	mux.HandleFunc("/v1/parse_input", InputHandler)
 
 	log.Printf("server is listening at %s", addr)
 	log.Fatal(http.ListenAndServe(addr, LoggerMiddleware(mux)))
@@ -22,6 +23,12 @@ func main() {
 
 func HelloHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello, World!"))
+}
+
+type EmployeeInfo struct {
+	EmployeeId int
+	FirstName  string
+	LastName   string
 }
 
 func EncodingRequestHandler(w http.ResponseWriter, r *http.Request) {
@@ -68,8 +75,16 @@ func AddEncoderToContext(next http.HandlerFunc) http.HandlerFunc {
 
 }
 
-type EmployeeInfo struct {
-	EmployeeId int
-	FirstName  string
-	LastName   string
+func InputHandler(w http.ResponseWriter, r *http.Request) {
+	var ei EmployeeInfo
+	err := json.NewDecoder(r.Body).Decode(&ei)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ei.FirstName = "Clearly not " + ei.FirstName
+	ei.LastName = ei.LastName + "ln't"
+
+	json.NewEncoder(w).Encode(ei)
 }
