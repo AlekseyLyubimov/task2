@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -15,23 +14,14 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v1/hello", HelloHandler)
-	mux.HandleFunc("/v1/time", CurrentTimeHandler)
 	mux.HandleFunc("/v1/encoding", AddEncoderToContext(EncodingRequestHandler))
-	//wrap entire mux with logger middleware
-	//wrappedMux := NewLogger(mux)
 
 	log.Printf("server is listening at %s", addr)
-	//use wrappedMux instead of mux as root handler
 	log.Fatal(http.ListenAndServe(addr, LoggerMiddleware(mux)))
 }
 
 func HelloHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello, World!"))
-}
-
-func CurrentTimeHandler(w http.ResponseWriter, r *http.Request) {
-	curTime := time.Now().Format(time.Kitchen)
-	w.Write([]byte(fmt.Sprintf("the current time is %v", curTime)))
 }
 
 func EncodingRequestHandler(w http.ResponseWriter, r *http.Request) {
@@ -42,13 +32,11 @@ func EncodingRequestHandler(w http.ResponseWriter, r *http.Request) {
 
 	xmlEnc, ok := encoder.(*xml.Encoder)
 	if ok {
-		log.Printf("Attempt to encode in xml")
 		xmlEnc.Encode(employee)
 	}
 
 	jsonEnc, ok := encoder.(*json.Encoder)
 	if ok {
-		log.Printf("Attempt to encode in json")
 		jsonEnc.Encode(employee)
 	}
 
